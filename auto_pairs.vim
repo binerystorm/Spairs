@@ -1,5 +1,5 @@
 " =========================
-" File: sinta
+" File: auto_pairs.vim
 " Auther: binerystorm
 " Function: bracket pairing
 " Comment: only works for single char rappers
@@ -7,43 +7,73 @@
 
 " set up
 
-if !exists("g:rapper_list")
-    let g:rapper_list = ["()", "[]", "{}", "\"\"", "\'\'"]
+if !exists("s:rapper_list")
+    let s:rapper_list = ["()", "[]", "{}", "\"\"", "\'\'"]
 endif
 
-if !exists("g:key_list")
-    let g:key_list = []
+if !exists("s:key_list")
+    let s:key_list = []
 endif
 
 " settings functions
 
 " TODO: check for valid aguement
-function SetEnclosingList(list)
-let g:rapper_list = a:list
-call UpdateMappings()
+function SetRappers(...)
+let l:old_mappings = s:key_list
+let s:rapper_list = []
+for item in a:000
+    if type(item) != 1
+        " TODO: replace ... with function name
+        echoerr "Command Set ... only recieves strings" 
+    endif
+    call add(s:rapper_list, item)
+endfor
+call UpdateMappings(l:old_mappings)
 endfunction
+
 
 " TODO: check for valid argument
-function AppendEnclosingList(item)
-call add(g:rapper_list, a:item)
-call UpdateMappings()
+function AddRapper(item)
+call add(s:rapper_list, a:item)
+call UpdateMappings([])
 endfunction
 
-function InitRapper()
-let g:key_list = []
-for rapper in g:rapper_list
-    call add(g:key_list, rapper[0])
+function InitKey()
+let s:key_list = []
+for rapper in s:rapper_list
+    call add(s:key_list, rapper[0])
 endfor
 endfunction
 
 " TODO: add check that key_list and rapper_list are the same length
-function UpdateMappings()
-call InitRapper()
+function UpdateMappings(removed_mappings)
+call InitKey()
 let l:index = 0
-for key in g:key_list
-    execute("inoremap ".key." ".g:rapper_list[l:index]."<left>")
+
+for key in s:key_list
+    execute("inoremap ".key." ".s:rapper_list[l:index]."<left>")
     let l:index += 1
 endfor
+
+for key in a:removed_mappings
+    execute("iunmap ".key)
+endfor
+endfunction
+
+function ListRappers()
+for rapper in s:rapper_list
+    echo rapper
+endfor
+endfunction
+
+function RemoveRapper(rapper)
+let l:index = index(s:rapper_list, a:rapper)
+if l:index >= 0
+    call remove(s:rapper_list, l:index)
+else
+    echoerr "rapper ".a:rapper." does not exist"
+endif
+call UpdateMappings([a:rapper[0]])
 endfunction
 
 " core functions
@@ -57,7 +87,7 @@ endfunction
 function! InBrackets()
 let curserPos=getpos(".")
 let chars = strpart(getline("."), curserPos[2]-2, 2)
-if index(g:rapper_list, chars) >= 0
+if index(s:rapper_list, chars) >= 0
     return 1
 else
     return 0
@@ -77,4 +107,7 @@ endfunction
 inoremap <silent><BS> <C-r>=BackSpace()<CR>
 
 " init plugin
-call UpdateMappings()
+call UpdateMappings([])
+
+" commads
+
