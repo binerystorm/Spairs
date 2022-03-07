@@ -72,6 +72,7 @@ if l:index >= 0
     call remove(s:rapper_list, l:index)
 else
     echoerr "rapper ".a:rapper." does not exist"
+    return
 endif
 call UpdateMappings([a:rapper[0]])
 endfunction
@@ -111,3 +112,7 @@ call UpdateMappings([])
 
 " commads
 
+command ListRappers call ListRappers()
+command -nargs=+ AddRapper call AddRapper(<f-args>)
+command -nargs=+ RemoveRapper call RemoveRapper(<f-args>)
+command -nargs=+ SetRappers call SetRappers(<f-args>)
